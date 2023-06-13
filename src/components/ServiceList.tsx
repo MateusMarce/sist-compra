@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react'
 import { servicos } from '../assets/types/type'
 
 
-function ServiceList({item, setServicosCart, servicosCart, paymentCheck}:any) {
+function ServiceList({item, setServicosCart, servicosCart}:any) {
     const [qtd, setQtd] = useState<string>(item.qtd)
 
 
@@ -68,10 +68,8 @@ function ServiceList({item, setServicosCart, servicosCart, paymentCheck}:any) {
                     <Currency2
                         name="item-input"
                         className='form-control px-0 form-control-sm text-center border-0'
-                        
-                        defaultValue={1000}
-                        decimalsLimit={2}
-                        decimalScale={2}
+                        decimalsLimit={3}
+                        decimalScale={item.unidade == 'Un' ? 0 : 3}
                         decimalSeparator={'.'}
                         groupSeparator={','}
                         disableGroupSeparators={true}

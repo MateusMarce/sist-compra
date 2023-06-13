@@ -38,12 +38,12 @@ function App() {
   const [type, setType] = useState<string>("1")
   const [saldo, setSaldo] = useState<number>(0)
   let date = new Date()      
-    let year = date.toLocaleString("default", { year: "numeric" })
-    let month = date.toLocaleString("default", { month: "2-digit" })
-    let day = date.toLocaleString("default", { day: "2-digit" })
-    let hours = date.toLocaleString("default", { hour: "2-digit" })
-    let minutes = date.toLocaleString("pt-br", { minute: "2-digit" })
-    if (parseInt(minutes) < 10) minutes = `0${minutes}`  
+  let year = date.toLocaleString("default", { year: "numeric" })
+  let month = date.toLocaleString("default", { month: "2-digit" })
+  let day = date.toLocaleString("default", { day: "2-digit" })
+  let hours = date.toLocaleString("default", { hour: "2-digit" })
+  let minutes = date.toLocaleString("pt-br", { minute: "2-digit" })
+  if (parseInt(minutes) < 10) minutes = `0${minutes}`  
   const [pagador, setPagador] = useState<pagador>({
     data: `${year}-${month}-${day}T${hours}:${minutes}`,
     usuario_id: 0,
@@ -86,19 +86,15 @@ function App() {
 
   const handleOpenUser = async () => {
 
-    if(!optionsUser[0]){
       setIsLoading(true)
       try {
         let {data} = await axios.get(`getAlunos`)
-        let opt = [...data].map(user => ({value:{...user}, label:`${user.nome} ${Number(user.saldo) != 0 && `- Saldo: R$ ${user.saldo}`}`}))
+        let opt = [...data].map(user => ({value:{...user}, label:`${user.nome} ${user.codigo_cartao ? `| ${user.codigo_cartao}` : ''} ${Number(user.saldo) != 0 ? `| Saldo: R$ ${user.saldo}`: ''}`}))
         setOptionsUser(opt)
       } catch (error) {
         
       }
       setIsLoading(false)
-    } else {
-      // setOptionsUser([])
-    }
   }
   const HandleMenuChange = async (value:any, setFieldValue:(field: string, value: any, shouldValidate?: boolean | undefined)=>void) => {
     inputSearchNameChange(value, setFieldValue)
@@ -287,7 +283,6 @@ function App() {
                             servicosCart={servicosCart}
                             setServicos={setServicos}
                             servicos={servicos}
-                            paymentCheck={paymentCheck}
                           />
                         ))
                           :

@@ -24,6 +24,9 @@ function ModalEnd({
     const [troco, setTroco] = useState<string>('')
     const [qr, setQr] = useState<string>('')
     const [loading, setLoading] = useState<boolean>(false)
+    const [pago, setPago] = useState<boolean>(false)
+    const [cancelado, setCancelado] = useState<boolean>(false)
+    const [timer, setTimer] = useState<number | undefined>()
     var pay: string = 'PIX'
     switch (mode) {
         case 0:
@@ -38,21 +41,23 @@ function ModalEnd({
         case 3:
             pay = 'Conta'
     }
-
-
-    useEffect(()=>{
-      if(mode == 2) {
-        (async()=>{
-          setLoading(true)
-          let res = await axios.post('getQRCode', {
-            valor_total:Number(total)
-          })
-          setQr(res.data.image_base64_img)
-          setLoading(false)
-        })()
-      }
-    }, [setEnd])
-
+    const apoio_user = {
+      usuario_id:pagador.usuario_id,
+      cliente_id:pagador.cliente_id,
+      aluno_id:pagador.aluno_id,
+      dt_compra: pagador.data,
+      vl_recibo: Number(total),
+      vl_dinheiro: parseFloat(troco?.replaceAll(',','.')) || Number(total),
+      vl_troco: troco ? parseFloat(troco?.replaceAll(',','.')) - (Number(total)) : 0,
+      itens: list && list.map((i:any,k:number)=>{return {
+        produto_id: i.id,
+        valor: Number(i.preco_venda),
+        valor_custo: Number(i.valor_custo || 0),
+        qtd: i.qtd
+      }}),
+      flag: 'Paga',
+      pagamento: (mode + 1).toString()
+    }
 
     let date = new Date()
     let year = date.toLocaleString("default", { year: "numeric" })
@@ -64,23 +69,6 @@ function ModalEnd({
     if (parseInt(minutes) < 10) minutes = `0${minutes}`
 
     const handleClickFinalizar = async () => {
-      let apoio_user = {
-        usuario_id:pagador.usuario_id,
-        cliente_id:pagador.cliente_id,
-        aluno_id:pagador.aluno_id,
-        dt_compra: pagador.data,
-        vl_recibo: Number(total),
-        vl_dinheiro: parseFloat(troco?.replaceAll(',','.')) || Number(total),
-        vl_troco: troco ? parseFloat(troco?.replaceAll(',','.')) - (Number(total)) : 0,
-        itens: list && list.map((i:any,k:number)=>{return {
-          produto_id: i.id,
-          valor: Number(i.preco_venda),
-          valor_custo: Number(i.valor_custo || 0),
-          qtd: i.qtd
-        }}),
-        flag: 'Paga',
-        pagamento: (mode + 1).toString()
-      }
 
       try {
         await axios.post('salvarCarrinho', apoio_user)
@@ -107,18 +95,81 @@ function ModalEnd({
       setPaymentCheck(null)
       formikForm.current?.resetForm()
     }
+    
+    const handleInterval = (txid:string) => {
+      if(timer) {
+        clearInterval(timer)
+        setTimer(0)
+      }
+      
+      const newTimer = window.setInterval(async ()=>{
+          
+          let res = await axios.post('getPixStatus', {
+            txid
+          })
+          console.log(res.data);
+          
+          if(res.status == 200) {
+
+            if(res.data == 'Paga') {
+              toast.success('Venda realizada com sucesso!')
+              setPago(true)
+            } else if (res.data == 'Cancelada' ) {
+              toast.success('Venda realizada com sucesso!')
+              setCancelado(true)
+            }
+            
+            setPagador({
+              data: `${year}-${month}-${day}T${hours}:${minutes}`,
+              aluno_id: 0,
+              cliente_id:'',
+              pagamento:1
+            })
+            setPagadorName('Compra Avulsa')
+            setSaldo(0)
+            setAvulsa(true)
+            setPaymentCheck(null)
+            formikForm.current?.resetForm()
+            setTimer(0)
+            clearInterval(newTimer)
+          }
+          
+      }, 5000)
+      
+      setTimer(newTimer)
+    }
+
+    const handleGenerateQR = async () => {
+      setLoading(true)
+      let res = await axios.post('getQRCode', apoio_user)
+      setQr(res.data.image_base64_img)
+      setLoading(false)
+      handleInterval(res.data.txid)
+    }
 
 
     return (
         <div className="w-100 h-100 d-flex justify-content-center align-items-center" style={{position:'absolute', top:0, zIndex:999, backgroundColor:'rgba(0,0,0,0.2)'}}>
             <div style={{width:500, backgroundColor:'white'}} className='shadow-lg rounded-3 row py-3' >
                 <div className="d-flex pt-2 justify-content-end" style={{height:50}}>
-                    <button className="btn btn-white" onClick={()=>setEnd(false)}><i className="bi bi-x-lg"></i></button>
+                    <button className="btn btn-white" onClick={()=>{setEnd(false), setTimer(0), clearInterval(timer), setServicosCart([])}}><i className="bi bi-x-lg"></i></button>
                 </div>
                 <div className="px-4">
                     <div className="row mb-4">
                         {pay == 'PIX' && loading && <i className="bi bi-arrow-clockwise spinner fs-1 d-flex justify-content-center"></i>}
-                        {pay == 'PIX' && !loading && <img style={{height:200, width:'auto', margin:'auto'}} src={qr} />}
+                        {pay == 'PIX' && !loading && qr && pago && 
+                          <>
+                            <i style={{fontSize:72}} className="bi bi-check d-flex justify-content-center"></i>
+                            <span className='text-center fs-4 fw-bolder'>PIX Recebido!</span>
+                          </>
+                        }
+                        {pay == 'PIX' && !loading && qr && cancelado &&
+                          <>
+                            <i style={{fontSize:72}} className="bi bi-x d-flex justify-content-center"></i>
+                            <span className='text-center fs-4 fw-bolder'>Compra Cancelada!</span>
+                          </>
+                        }
+                        {pay == 'PIX' && !loading && qr && !pago && !cancelado && <img style={{height:200, width:'auto', margin:'auto'}} src={qr} />}
                         {pay == 'Dinheiro' && <i className="bi bi-cash-stack fs-1 d-flex justify-content-center"></i>}
                         {pay == 'Conta' && <i className="bi bi-wallet2 fs-1 d-flex justify-content-center"></i>}
                         {pay.split(' |')[0] == 'Saldo' && <i className="bi bi-credit-card d-flex justify-content-center fs-1"></i>}
@@ -210,9 +261,9 @@ function ModalEnd({
                   {(pay == 'PIX') && <button
                     className="btn-original rounded mx-2 text-white mt-2 py-3"
                     style={{width:'calc(100% - 1rem)'}}
-                    onClick={handleClickFinalizar}
+                    onClick={handleGenerateQR}
                   >
-                      PAGAR COM QR CODE
+                      {!qr ? "GERAR QR CODE" : 'CONCLUIR COMPRA'}
                   </button>}
 
                   {(pay.split(' |')[0] == 'Saldo' || pay.split(' |')[0] == 'Conta') && <button
@@ -220,7 +271,7 @@ function ModalEnd({
                     style={{width:'calc(100% - 1rem)'}}
                     onClick={handleClickFinalizar}
                   >
-                      CONCLUIR VENDA
+                      CONCLUIR COMPRA
                   </button>}
 
                   {pay.split(' |')[0] == 'Dinheiro' && <button
@@ -229,7 +280,7 @@ function ModalEnd({
                     onClick={handleClickFinalizar}
                     disabled={(parseFloat(troco.replace(',','.') || '0') - Number(total)) < 0}
                   >
-                    CONCLUIR VENDA
+                    CONCLUIR COMPRA
                   </button>}
                 </div>
             </div>

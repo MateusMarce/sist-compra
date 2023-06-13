@@ -32,6 +32,7 @@ export interface servicos
             timezone_type: number,
             timezone:string
         },
-        apagado_em: null
+        apagado_em: null,
+        unidade: 'Un' | 'kg'
     }
   
