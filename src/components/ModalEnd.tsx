@@ -152,7 +152,7 @@ function ModalEnd({
         <div className="w-100 h-100 d-flex justify-content-center align-items-center" style={{position:'absolute', top:0, zIndex:999, backgroundColor:'rgba(0,0,0,0.2)'}}>
             <div style={{width:500, backgroundColor:'white'}} className='shadow-lg rounded-3 row py-3' >
                 <div className="d-flex pt-2 justify-content-end" style={{height:50}}>
-                    <button className="btn btn-white" onClick={()=>{setEnd(false), setTimer(0), clearInterval(timer), setServicosCart([])}}><i className="bi bi-x-lg"></i></button>
+                    <button className="btn btn-white" onClick={()=>{setEnd(false), setTimer(0), clearInterval(timer), setServicosCart([]), setPago(false), setCancelado(false)}}><i className="bi bi-x-lg"></i></button>
                 </div>
                 <div className="px-4">
                     <div className="row mb-4">
@@ -261,9 +261,9 @@ function ModalEnd({
                   {(pay == 'PIX') && <button
                     className="btn-original rounded mx-2 text-white mt-2 py-3"
                     style={{width:'calc(100% - 1rem)'}}
-                    onClick={handleGenerateQR}
+                    onClick={!qr && (!pago || !cancelado) ? handleGenerateQR : ()=>{setEnd(false), setTimer(0), clearInterval(timer), setServicosCart([]), setPago(false), setCancelado(false)}}
                   >
-                      {!qr ? "GERAR QR CODE" : 'CONCLUIR COMPRA'}
+                      {!qr && (!pago || !cancelado) ? "GERAR QR CODE" : 'CONCLUIR COMPRA'}
                   </button>}
 
                   {(pay.split(' |')[0] == 'Saldo' || pay.split(' |')[0] == 'Conta') && <button
