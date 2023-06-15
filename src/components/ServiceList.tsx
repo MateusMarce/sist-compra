@@ -15,7 +15,13 @@ function ServiceList({item, setServicosCart, servicosCart}:any) {
         setQtd(value)
         setServicosCart(servicosCart.map((item:servicos) => {
             
-            if (item.id == servico.id) item.qtd = value
+            if (item.id == servico.id) {
+                if(value) {
+                    item.qtd = +value?.replace(',', '.')
+                } else {
+                    item.qtd = 0
+                }
+            }
             return item
         }))
     }
@@ -70,8 +76,8 @@ function ServiceList({item, setServicosCart, servicosCart}:any) {
                         className='form-control px-0 form-control-sm text-center border-0'
                         decimalsLimit={3}
                         decimalScale={item.unidade == 'Un' ? 0 : 3}
-                        decimalSeparator={'.'}
-                        groupSeparator={','}
+                        decimalSeparator={','}
+                        groupSeparator={'.'}
                         disableGroupSeparators={true}
                         value={qtd}
                         onValueChange={(value:any) => handleDigitarValor(item, value)}

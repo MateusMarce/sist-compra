@@ -114,24 +114,37 @@ function ModalEnd({
             if(res.data == 'Paga') {
               toast.success('Venda realizada com sucesso!')
               setPago(true)
+              setPagador({
+                data: `${year}-${month}-${day}T${hours}:${minutes}`,
+                aluno_id: 0,
+                cliente_id:'',
+                pagamento:1
+              })
+              setPagadorName('Compra Avulsa')
+              setSaldo(0)
+              setAvulsa(true)
+              setPaymentCheck(null)
+              formikForm.current?.resetForm()
+              setTimer(0)
+              clearInterval(newTimer)
             } else if (res.data == 'Cancelada' ) {
               toast.success('Venda realizada com sucesso!')
               setCancelado(true)
+              setPagador({
+                data: `${year}-${month}-${day}T${hours}:${minutes}`,
+                aluno_id: 0,
+                cliente_id:'',
+                pagamento:1
+              })
+              setPagadorName('Compra Avulsa')
+              setSaldo(0)
+              setAvulsa(true)
+              setPaymentCheck(null)
+              formikForm.current?.resetForm()
+              setTimer(0)
+              clearInterval(newTimer)
             }
             
-            setPagador({
-              data: `${year}-${month}-${day}T${hours}:${minutes}`,
-              aluno_id: 0,
-              cliente_id:'',
-              pagamento:1
-            })
-            setPagadorName('Compra Avulsa')
-            setSaldo(0)
-            setAvulsa(true)
-            setPaymentCheck(null)
-            formikForm.current?.resetForm()
-            setTimer(0)
-            clearInterval(newTimer)
           }
           
       }, 5000)

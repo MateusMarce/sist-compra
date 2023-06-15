@@ -9,7 +9,7 @@ function ServiceCard({servico, setServicosCart, servicosCart, setSearch}:any) {
             if (item.id == servico.id) {
                 add = false
                 // item.qtd += servico.qtd
-                item.qtd = (Number(item.qtd) + 1).toFixed(2)
+                item.qtd = (Number(item.qtd) + 1).toFixed(3)
             }    
             
             return item

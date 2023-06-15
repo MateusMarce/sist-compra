@@ -80,6 +80,8 @@ function App() {
     let total = 0
     
     total = servicosCart.map(item => Number(item.preco_venda) * Number(item.qtd)).reduce((sum, a) => sum + a, 0)
+    console.log(total);
+    
     setTotal(Number(total).toFixed(2))
   }, [servicosCart, paymentCheck])
 
